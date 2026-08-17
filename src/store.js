@@ -68,7 +68,20 @@
   var state = empty();
   var listeners = [];
 
+  /* プライベートブラウズや、埋め込まれた枠の中では localStorage が使えないことがある。
+     そこで黙って書けないままにすると、書いた願いが毎回消える。
+     使えないことは最初にはっきり伝える。 */
+  var writable = (function () {
+    try {
+      var k = 'tsukuyomi:test';
+      localStorage.setItem(k, '1');
+      localStorage.removeItem(k);
+      return true;
+    } catch (e) { return false; }
+  })();
+
   function load() {
+    if (!writable) { state = empty(); return state; }
     try {
       var raw = localStorage.getItem(KEY);
       state = migrate(raw ? JSON.parse(raw) : null);
@@ -80,13 +93,27 @@
     return state;
   }
 
+  var warned = false;
   function persist() {
+    if (!writable) {
+      if (!warned) {
+        warned = true;
+        alert('このブラウザでは記録を保存できません。\n' +
+              'プライベートブラウズを解除するか、別のブラウザで開いてください。\n' +
+              'このまま書いたものは、画面を閉じると消えます。');
+      }
+      return;
+    }
     try {
       var prev = localStorage.getItem(KEY);
       if (prev) localStorage.setItem(BACKUP, prev);
       localStorage.setItem(KEY, JSON.stringify(state));
     } catch (e) {
-      alert('保存できませんでした。ブラウザの保存容量やプライベートモードを確認してください。');
+      if (!warned) {
+        warned = true;
+        alert('保存できませんでした。ブラウザの保存容量を確認してください。\n' +
+              '〈設定〉から書き出して、記録を守ってください。');
+      }
       console.error(e);
     }
   }
@@ -292,6 +319,7 @@
 
   W.store = {
     uid: uid,
+    writable: writable,
     load: load,
     get state() { return state; },
     update: update,
