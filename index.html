@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>月詠 — 願いと問いのノート</title>
+<meta name="description" content="願いを強く思い、問いを立て、執着せず、小さな気づきを拾う。月の満ち欠けとともに続ける個人用のノート。">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon.svg">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="appbar">
+  <a class="appbar__brand" href="#/today">
+    <span class="appbar__moon" id="appbarMoon" aria-hidden="true"></span>
+    <span class="appbar__titles">
+      <strong>月詠</strong>
+      <small id="appbarSub">つくよみ</small>
+    </span>
+  </a>
+  <a class="appbar__gear" href="#/settings" aria-label="設定">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6">
+      <circle cx="12" cy="12" r="3.2"/>
+      <path d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4l-1.6 1.6M7 17l-1.6 1.6M18.6 18.6L17 17M7 7L5.4 5.4"/>
+    </svg>
+  </a>
+</header>
+
+<main id="app" class="app" tabindex="-1"></main>
+
+<nav class="tabbar" id="tabbar">
+  <a href="#/today"     data-tab="today"     ><span class="tabbar__i">◐</span>今日</a>
+  <a href="#/wishes"    data-tab="wishes"    ><span class="tabbar__i">✦</span>願い</a>
+  <a href="#/questions" data-tab="questions" ><span class="tabbar__i">？</span>問い</a>
+  <a href="#/notices"   data-tab="notices"   ><span class="tabbar__i">◦</span>気づき</a>
+  <a href="#/moon"      data-tab="moon"      ><span class="tabbar__i">☾</span>月</a>
+</nav>
+
+<script src="src/moon.js"></script>
+<script src="src/store.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/coach.js"></script>
+<script src="src/seeds.js"></script>
+<script src="src/views/today.js"></script>
+<script src="src/views/wishes.js"></script>
+<script src="src/views/wish-detail.js"></script>
+<script src="src/views/questions.js"></script>
+<script src="src/views/notices.js"></script>
+<script src="src/views/moon-view.js"></script>
+<script src="src/views/settings.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>

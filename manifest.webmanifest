@@ -1,0 +1,15 @@
+{
+  "name": "月詠 — 願いと問いのノート",
+  "short_name": "月詠",
+  "description": "強く思い、問いを立て、執着せず、小さな気づきを拾う。月の満ち欠けとともに続けるノート。",
+  "start_url": "./index.html#/today",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080c18",
+  "theme_color": "#080c18",
+  "lang": "ja",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
