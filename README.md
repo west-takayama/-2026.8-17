@@ -24,24 +24,32 @@ CSS も JavaScript もアイコンも全部入った、**1枚だけの HTML フ�
 
 ### 方法2：GitHub Pages で URL にする（毎日使うなら）
 
-**このリポジトリは非公開なので、そのままでは Pages が使えません。**
-GitHub の Pages は、無料プランだと公開リポジトリでしか動かないためです
-（`.github/workflows/pages.yml` は用意してありますが、
-非公開のままだと `Resource not accessible by integration` で止まります）。
+ビルドの仕組みは要りません。素の HTML なので、**ブランチをそのまま配信**できます。
 
-どちらかを選んでください。
+1. **Settings → Pages** を開く
+2. **Source** を `Deploy from a branch` にする
+3. **Branch** を `claude/personal-wish-fulfillment-tool-nriruw`、
+   フォルダを `/ (root)` にして **Save**
+4. 1〜2分待つと、同じ画面の上に URL が出ます
 
-**A. リポジトリを公開にする**（無料・おすすめ）
+URL はこうなります。
 
-Settings → General → いちばん下の Change visibility → Public にするだけです。
-そのあと Actions タブで `Pages` が緑になれば、Settings → Pages に URL が出ます。
+```
+https://west-takayama.github.io/-2026.8-17/
+```
 
+> リポジトリが**公開**である必要があります（Pages は無料プランだと公開リポジトリのみ）。
 > 公開されるのは**アプリの中身（コード）だけ**です。
 > 願い・問い・気づきはあなたの端末のブラウザにしか無く、
-> リポジトリにも、どのサーバーにも送られません。公開しても他人には見えません。
+> リポジトリにも、どのサーバーにも送られません。他人には白紙のアプリが見えるだけです。
+>
+> GitHub Actions で自動公開する方法も試しましたが、
+> Pages を有効化する API に workflow の権限が届かず
+> （`Resource not accessible by integration`）、上の手動設定のほうが確実でした。
+> 一度設定すれば、あとは push するたびに自動で更新されます。
 
-**B. GitHub Pro にする**、または Netlify・Vercel などに置く
-（どれもこのフォルダをそのまま置くだけで動きます。ビルド設定は不要です）
+置き場所は GitHub でなくても構いません。Netlify や Vercel なら、
+このフォルダをそのままドラッグするだけで動きます（ビルド設定は不要です）。
 
 ### ホーム画面に追加する
 
