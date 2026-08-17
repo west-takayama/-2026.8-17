@@ -474,6 +474,72 @@ input[type="file"].in { padding: 9px; font-size: 12px; color: var(--muted); }
 .bar__b { color: var(--indigo); font-style: normal; margin-left: 4px; }
 .bar__d { color: var(--gold); font-style: normal; margin-left: 4px; }
 
+/* ---------------------------------------------------- コンディション */
+
+.card--cond { border-color: rgba(143,184,240,.28); }
+.card--cond .card__title { color: var(--k-dream); }
+
+.sleep { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.sleepb {
+  appearance: none; cursor: pointer; font: inherit; font-size: 12px;
+  padding: 10px 0; border-radius: var(--r-s);
+  border: 1px solid var(--line-2); background: rgba(255,255,255,.04); color: var(--muted);
+}
+.sleepb:hover { background: rgba(255,255,255,.09); }
+.sleepb.is-on { background: var(--k-dream); border-color: var(--k-dream); color: #0b1020; font-weight: 700; }
+
+.condline {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 9px 14px; border-radius: var(--r-s);
+  background: rgba(143,184,240,.09); border: 1px solid rgba(143,184,240,.22);
+  font-size: 12px; color: var(--muted);
+}
+.condline span { flex: 1; min-width: 0; }
+.condline a { font-size: 11px; }
+
+/* ------------------------------------------------------------- 調べ */
+
+.ovs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 12px; }
+.ov { padding: 10px 6px; border-radius: var(--r-s); background: rgba(0,0,0,.24); text-align: center; }
+.ov b { display: block; font-size: 19px; color: var(--moon); line-height: 1.25; font-weight: 600; }
+.ov b i { font-style: normal; font-size: 10px; color: var(--faint); margin-left: 2px; }
+.ov span { display: block; font-size: 11px; color: var(--muted); }
+.ov small { display: block; font-size: 9px; color: var(--faint); }
+
+.lns { display: flex; flex-direction: column; gap: 4px; }
+.lnrow { display: flex; align-items: center; gap: 10px; }
+.lnrow__l { width: 2.6em; flex: none; font-size: 11px; color: var(--faint); }
+.ln { flex: 1; min-width: 0; height: 34px; display: block; }
+
+.gauge { height: 6px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; margin: 8px 0 10px; }
+.gauge span { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--indigo), var(--k-dream)); }
+
+.link { padding: 12px 0; border-top: 1px solid var(--line); }
+.link:first-of-type { border-top: 0; }
+.link__t { font-size: 14px; line-height: 1.7; }
+.link__tag {
+  display: inline-block; margin-left: 8px; font-size: 10px; letter-spacing: .04em;
+  padding: 1px 8px; border-radius: 999px;
+  background: rgba(255,255,255,.07); color: var(--faint); white-space: nowrap;
+}
+.link__n { font-size: 12px; color: var(--muted); margin: 4px 0 0; }
+.link__m { font-size: 10px; color: var(--faint); margin-top: 4px; }
+.link--strong .link__t { color: var(--moon); }
+.link--strong { border-left: 2px solid var(--gold); padding-left: 12px; }
+.link--mid { border-left: 2px solid var(--indigo); padding-left: 12px; }
+
+.hrs { display: flex; align-items: flex-end; gap: 2px; height: 60px; margin: 4px 0 6px; }
+.hr { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; position: relative; }
+.hr i { display: block; width: 100%; border-radius: 2px 2px 0 0; background: rgba(124,134,232,.5); }
+.hr.is-peak i { background: var(--moon); }
+.hr b { position: absolute; bottom: -14px; font-size: 8px; color: var(--faint); font-weight: 400; }
+.hrs { margin-bottom: 20px; }
+
+.mbars { display: flex; align-items: flex-end; gap: 4px; height: 64px; margin: 4px 0 22px; }
+.mbar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; position: relative; }
+.mbar i { display: block; width: 100%; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, var(--indigo), rgba(124,134,232,.35)); }
+.mbar b { position: absolute; bottom: -16px; font-size: 9px; color: var(--faint); font-weight: 400; }
+
 /* -------------------------------------------------------------- 儀式 */
 
 .rhead {
@@ -634,7 +700,7 @@ input[type="file"].in { padding: 9px; font-size: 12px; color: var(--muted); }
 
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  display: grid; grid-template-columns: repeat(6, 1fr);
+  display: grid; grid-template-columns: repeat(7, 1fr);
   background: rgba(8, 12, 24, .92);
   backdrop-filter: blur(14px);
   border-top: 1px solid var(--line);

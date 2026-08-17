@@ -25,7 +25,8 @@
       wishes:   [],
       questions:[],
       notices:  [],
-      rituals:  []      // 新月と満月に行った儀式の記録
+      rituals:  [],     // 新月と満月に行った儀式の記録
+      days:     []      // 一日ひとつのコンディション（睡眠・調子・余白）
     };
   }
 
@@ -41,6 +42,7 @@
     data.questions = Array.isArray(data.questions) ? data.questions : [];
     data.notices   = Array.isArray(data.notices)   ? data.notices   : [];
     data.rituals   = Array.isArray(data.rituals)   ? data.rituals   : [];
+    data.days      = Array.isArray(data.days)      ? data.days      : [];
 
     data.wishes.forEach(function (w) {
       w.id       = w.id || uid();
@@ -289,6 +291,42 @@
     update(function (s) { s.notices = s.notices.filter(function (n) { return n.id !== id; }); });
   }
 
+  /* ---------------- 一日のコンディション ---------------- */
+
+  /* 一日ひとつだけ。何度書いても上書きする（朝と夜で気が変わってもよい）。
+     睡眠は「昨夜の睡眠」として扱う。その日の調子を説明する変数だから。 */
+  function upsertDay(dayKey, fields) {
+    var now = new Date();
+    var found = null;
+    for (var i = 0; i < state.days.length; i++) if (state.days[i].day === dayKey) found = state.days[i];
+
+    if (found) {
+      update(function () { Object.assign(found, fields, { at: now.toISOString() }); });
+      return found;
+    }
+    var d = Object.assign({
+      id: uid(),
+      day: dayKey,
+      at: now.toISOString(),
+      moon: W.moon.stamp(now),
+      sleep: null,        // 昨夜の睡眠（時間）
+      condition: null,    // からだと心の調子 1〜5
+      space: null,        // 余白・ゆとり 1〜5
+      note: ''
+    }, fields);
+    update(function (s) { s.days.unshift(d); });
+    return d;
+  }
+
+  function getDay(dayKey) {
+    for (var i = 0; i < state.days.length; i++) if (state.days[i].day === dayKey) return state.days[i];
+    return null;
+  }
+
+  function removeDay(dayKey) {
+    update(function (s) { s.days = s.days.filter(function (d) { return d.day !== dayKey; }); });
+  }
+
   /* ---------------- 儀式 ---------------- */
 
   /* 新月と満月に一度ずつ。その周期のあいだに何を受け取り、何を手放したかを残す。
@@ -350,10 +388,11 @@
         s.questions = incoming.questions;
         s.notices   = incoming.notices;
         s.rituals   = incoming.rituals;
+        s.days      = incoming.days;
         return;
       }
       // 追加読み込み：同じ id のものは重複させない
-      ['wishes', 'questions', 'notices', 'rituals'].forEach(function (k) {
+      ['wishes', 'questions', 'notices', 'rituals', 'days'].forEach(function (k) {
         var seen = {};
         s[k].forEach(function (o) { seen[o.id] = true; });
         incoming[k].forEach(function (o) { if (!seen[o.id]) s[k].push(o); });
@@ -365,7 +404,7 @@
     update(function (s) {
       var fresh = empty();
       s.settings = fresh.settings;
-      s.wishes = []; s.questions = []; s.notices = []; s.rituals = [];
+      s.wishes = []; s.questions = []; s.notices = []; s.rituals = []; s.days = [];
     });
   }
 
@@ -388,6 +427,7 @@
     addNotice: addNotice, editNotice: editNotice, removeNotice: removeNotice,
 
     saveRitual: saveRitual, getRitual: getRitual,
+    upsertDay: upsertDay, getDay: getDay, removeDay: removeDay,
 
     exportJSON: exportJSON, importJSON: importJSON, reset: reset
   };

@@ -74,6 +74,56 @@
       (done ? '満月の記録を見る' : '満月の儀式をはじめる') + '</a></div>';
   }
 
+  /* 今日のコンディション。
+     入力は3タップまで。これ以上増やすと、たぶん一週間で書かなくなる。
+     睡眠は「昨夜」を指す。その日の調子を説明する側の変数だから。 */
+  var SLEEP = [
+    { v: 4,  label: '〜4' }, { v: 5, label: '5' }, { v: 6, label: '6' },
+    { v: 7,  label: '7' },  { v: 8, label: '8' }, { v: 9, label: '9' },
+    { v: 10, label: '10〜' }
+  ];
+
+  function condition(params) {
+    var key = ui.dayKey(new Date());
+    var d = W.store.getDay(key);
+    var filled = d && (d.sleep != null || d.condition != null || d.space != null);
+
+    // 記録ずみなら畳んでおく。毎日の画面を入力欄で埋めない。
+    if (filled && !params.cond) {
+      var bits = [];
+      if (d.sleep != null) bits.push('睡眠 ' + d.sleep + '時間');
+      if (d.condition != null) bits.push('調子 ' + d.condition);
+      if (d.space != null) bits.push('余白 ' + d.space);
+      return '<div class="condline">' +
+        '<span>今日のコンディション … ' + esc(bits.join('　')) + '</span>' +
+        '<a href="#/today?cond=1">書き直す</a>' +
+        '<a href="#/insight">傾向を見る</a>' +
+      '</div>';
+    }
+
+    var sleepBtns = SLEEP.map(function (o) {
+      return '<button type="button" class="sleepb' + (d && d.sleep === o.v ? ' is-on' : '') +
+             '" data-sleep="' + o.v + '">' + esc(o.label) + '</button>';
+    }).join('');
+
+    return '' +
+      '<section class="card card--cond">' +
+        '<h2 class="card__title">今日のコンディション</h2>' +
+        '<p class="hint">ここに書いた数字は、あとで〈調べ〉が' +
+          '「よく眠れた日ほど握りがゆるい」のような形にして返してきます。</p>' +
+        '<label class="lb">昨夜の睡眠<small>時間</small></label>' +
+        '<div class="sleep" id="sleepRow">' + sleepBtns + '</div>' +
+        '<label class="lb">調子<small>からだと心の、今日ぜんたい</small></label>' +
+        ui.scale('condition', d ? d.condition : null, ['重い', '軽い']) +
+        '<label class="lb">余白<small>時間と心の、ゆとり</small></label>' +
+        ui.scale('space', d ? d.space : null, ['詰まっている', 'ひらいている']) +
+        '<div class="row row--end">' +
+          (filled ? '<a class="btn btn--ghost" href="#/today">閉じる</a>' : '') +
+          '<button class="btn btn--primary" data-act="cond-save">記録する</button>' +
+        '</div>' +
+      '</section>';
+  }
+
   function todayQuestion() {
     var q = W.seeds.daily();
     return '' +
@@ -144,13 +194,28 @@
       '</section>';
   }
 
-  function render() {
+  function render(params) {
     var st = streak();
-    return moonHero() + ritual() + todayQuestion() + quickNotice() + wishList() +
+    return moonHero() + ritual() + condition(params) + todayQuestion() + quickNotice() + wishList() +
       (st > 1 ? '<p class="streak">気づきを書きとめた日が ' + st + '日 続いています。</p>' : '');
   }
 
   function mount(root) {
+    ui.bindScales(root);
+
+    // 睡眠の選択（1タップで決まるように、押した時点で見た目を変える）
+    var sleepRow = root.querySelector('#sleepRow');
+    var sleepVal = null;
+    if (sleepRow) {
+      var on = sleepRow.querySelector('.sleepb.is-on');
+      sleepVal = on ? Number(on.dataset.sleep) : null;
+      sleepRow.addEventListener('click', function (e) {
+        var b = e.target.closest('.sleepb'); if (!b) return;
+        sleepVal = Number(b.dataset.sleep);
+        sleepRow.querySelectorAll('.sleepb').forEach(function (x) { x.classList.toggle('is-on', x === b); });
+      });
+    }
+
     var kind = lastKind;
     var chips = root.querySelector('#kindChips');
     if (chips) chips.addEventListener('click', function (e) {
@@ -165,6 +230,17 @@
     root.addEventListener('click', function (e) {
       var b = e.target.closest('[data-act]'); if (!b) return;
       var act = b.dataset.act;
+
+      if (act === 'cond-save') {
+        var cond = ui.scaleValue(root, 'condition');
+        var space = ui.scaleValue(root, 'space');
+        if (sleepVal == null && cond == null && space == null) {
+          ui.toast('ひとつだけでも選んでください'); return;
+        }
+        W.store.upsertDay(ui.dayKey(new Date()), { sleep: sleepVal, condition: cond, space: space });
+        ui.toast('記録しました');
+        if (location.hash.indexOf('cond=1') >= 0) location.hash = '#/today';
+      }
 
       if (act === 'notice-save') {
         var text = ta.value.trim();

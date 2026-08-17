@@ -148,7 +148,43 @@
         (sum.living.length
           ? '<h3 class="card__sub">育てている願いの、この一巡り</h3><ul class="rlist rlist--wish">' + wishLines + '</ul>'
           : '') +
+        conditionOfCycle(startMs) +
       '</section>';
+  }
+
+  /* この一巡りの、からだの側。握りしめの正体が眠りだった、ということはよくある。 */
+  function conditionOfCycle(startMs) {
+    var A = W.analysis;
+    var rows = A.dailyTable().filter(function (r) {
+      return r.date.getTime() >= startMs && (r.sleep != null || r.condition != null || r.space != null);
+    });
+    if (rows.length < 3) return '';
+
+    function avg(key) {
+      var xs = rows.filter(function (r) { return r[key] != null; }).map(function (r) { return Number(r[key]); });
+      return xs.length ? Math.round(A.mean(xs) * 10) / 10 : null;
+    }
+    var sleep = avg('sleep'), cond = avg('condition'), space = avg('space');
+
+    // この一巡りのなかで、睡眠と握りが動きをともにしていたか
+    var pairs = A.pairsOf(rows, 'sleep', 'grip');
+    var r = pairs.length >= 8 ? A.pearson(pairs) : null;
+    var line = '';
+    if (r != null && Math.abs(r) >= 0.4) {
+      line = r < 0
+        ? '<p class="hint">この一巡りでは、よく眠れた日ほど握りがゆるんでいました。' +
+          '手放せないと感じた日は、眠りが足りていなかっただけかもしれません。</p>'
+        : '<p class="hint">この一巡りでは、よく眠れた日ほど握りが強くなっていました。' +
+          '元気なときほど力が入るのかもしれません。</p>';
+    }
+
+    return '<h3 class="card__sub">この一巡りの、からだ</h3>' +
+      '<div class="rcounts">' +
+        (sleep != null ? '<div class="rc"><b>' + sleep + '</b><span>平均睡眠</span></div>' : '') +
+        (cond != null ? '<div class="rc"><b>' + cond + '</b><span>調子</span></div>' : '') +
+        (space != null ? '<div class="rc"><b>' + space + '</b><span>余白</span></div>' : '') +
+        '<div class="rc"><b>' + rows.length + '</b><span>記録した日</span></div>' +
+      '</div>' + line;
   }
 
   /* --------------------------------------------------------- 満月の儀式 */
