@@ -86,7 +86,7 @@
   function condition(params) {
     var key = ui.dayKey(new Date());
     var d = W.store.getDay(key);
-    var filled = d && (d.sleep != null || d.condition != null || d.space != null);
+    var filled = d && (d.sleep != null || d.condition != null || d.space != null || d.weight != null);
 
     // 記録ずみなら畳んでおく。毎日の画面を入力欄で埋めない。
     if (filled && !params.cond) {
@@ -94,6 +94,7 @@
       if (d.sleep != null) bits.push('睡眠 ' + d.sleep + '時間');
       if (d.condition != null) bits.push('調子 ' + d.condition);
       if (d.space != null) bits.push('余白 ' + d.space);
+      if (d.weight != null) bits.push(d.weight + 'kg');
       return '<div class="condline">' +
         '<span>今日のコンディション … ' + esc(bits.join('　')) + '</span>' +
         '<a href="#/today?cond=1">書き直す</a>' +
@@ -117,11 +118,30 @@
         ui.scale('condition', d ? d.condition : null, ['重い', '軽い']) +
         '<label class="lb">余白<small>時間と心の、ゆとり</small></label>' +
         ui.scale('space', d ? d.space : null, ['詰まっている', 'ひらいている']) +
+        weightRow(d) +
         '<div class="row row--end">' +
           (filled ? '<a class="btn btn--ghost" href="#/today">閉じる</a>' : '') +
           '<button class="btn btn--primary" data-act="cond-save">記録する</button>' +
         '</div>' +
       '</section>';
+  }
+
+  /* 体重は他の項目と入力の性質が違う。範囲が広く、刻みが細かい。
+     毎朝キーボードを出させると続かないので、前回の値を入れておいて
+     ±0.1 のボタンで動かすだけにする。ふつうは1〜3タップで終わる。
+
+     目標体重も、増減の色分けも置かない。数字に良し悪しを付けはじめると、
+     このアプリがいちばん避けたい「握りしめ」をこちらから作ることになる。 */
+  function weightRow(d) {
+    var v = (d && d.weight != null) ? d.weight : W.store.lastWeight();
+    return '<label class="lb">体重<small>kg・前回の値から動かすだけ</small></label>' +
+      '<div class="wt">' +
+        '<button type="button" class="wt__b" data-wt="-1" aria-label="減らす">−</button>' +
+        '<input id="weightIn" class="in wt__in" type="number" inputmode="decimal" step="0.1" ' +
+          'min="0" max="400" value="' + (v == null ? '' : esc(v)) + '" placeholder="—">' +
+        '<button type="button" class="wt__b" data-wt="1" aria-label="増やす">＋</button>' +
+        '<button type="button" class="wt__c" data-wt="clear">消す</button>' +
+      '</div>';
   }
 
   function todayQuestion() {
@@ -216,6 +236,15 @@
       });
     }
 
+    // 体重の増減ボタン
+    var wIn = root.querySelector('#weightIn');
+    if (wIn) root.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-wt]'); if (!b) return;
+      if (b.dataset.wt === 'clear') { wIn.value = ''; return; }
+      var base = wIn.value === '' ? (W.store.lastWeight() || 60) : Number(wIn.value);
+      wIn.value = (Math.round((base + Number(b.dataset.wt) * 0.1) * 10) / 10).toFixed(1);
+    });
+
     var kind = lastKind;
     var chips = root.querySelector('#kindChips');
     if (chips) chips.addEventListener('click', function (e) {
@@ -234,10 +263,16 @@
       if (act === 'cond-save') {
         var cond = ui.scaleValue(root, 'condition');
         var space = ui.scaleValue(root, 'space');
-        if (sleepVal == null && cond == null && space == null) {
+        var wIn = root.querySelector('#weightIn');
+        var wv = wIn && wIn.value !== '' ? Number(wIn.value) : null;
+        if (wv != null && (!isFinite(wv) || wv <= 0 || wv > 400)) {
+          ui.toast('体重の値を確かめてください'); return;
+        }
+        if (sleepVal == null && cond == null && space == null && wv == null) {
           ui.toast('ひとつだけでも選んでください'); return;
         }
-        W.store.upsertDay(ui.dayKey(new Date()), { sleep: sleepVal, condition: cond, space: space });
+        W.store.upsertDay(ui.dayKey(new Date()),
+          { sleep: sleepVal, condition: cond, space: space, weight: wv });
         ui.toast('記録しました');
         if (location.hash.indexOf('cond=1') >= 0) location.hash = '#/today';
       }

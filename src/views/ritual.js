@@ -156,7 +156,8 @@
   function conditionOfCycle(startMs) {
     var A = W.analysis;
     var rows = A.dailyTable().filter(function (r) {
-      return r.date.getTime() >= startMs && (r.sleep != null || r.condition != null || r.space != null);
+      return r.date.getTime() >= startMs &&
+             (r.sleep != null || r.condition != null || r.space != null || r.weight != null);
     });
     if (rows.length < 3) return '';
 
@@ -165,6 +166,10 @@
       return xs.length ? Math.round(A.mean(xs) * 10) / 10 : null;
     }
     var sleep = avg('sleep'), cond = avg('condition'), space = avg('space');
+
+    // 体重は平均より「この一巡りでどれだけ動いたか」のほうが意味がある
+    var ws = rows.filter(function (r) { return r.weight != null; });
+    var wChange = ws.length >= 2 ? Number(ws[ws.length - 1].weight) - Number(ws[0].weight) : null;
 
     // この一巡りのなかで、睡眠と握りが動きをともにしていたか
     var pairs = A.pairsOf(rows, 'sleep', 'grip');
@@ -183,6 +188,8 @@
         (sleep != null ? '<div class="rc"><b>' + sleep + '</b><span>平均睡眠</span></div>' : '') +
         (cond != null ? '<div class="rc"><b>' + cond + '</b><span>調子</span></div>' : '') +
         (space != null ? '<div class="rc"><b>' + space + '</b><span>余白</span></div>' : '') +
+        (wChange != null ? '<div class="rc"><b>' + (wChange >= 0 ? '＋' : '−') +
+          (Math.round(Math.abs(wChange) * 10) / 10) + '</b><span>体重の増減</span></div>' : '') +
         '<div class="rc"><b>' + rows.length + '</b><span>記録した日</span></div>' +
       '</div>' + line;
   }

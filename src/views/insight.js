@@ -37,6 +37,10 @@
       cell('平均睡眠', s.sleep ? fmt(s.sleep.v) : null, '時間', s.sleep ? s.sleep.n + '日ぶん' : '記録なし') +
       cell('調子',    s.condition ? fmt(s.condition.v) : null, '', s.condition ? s.condition.n + '日ぶん' : '記録なし') +
       cell('余白',    s.space ? fmt(s.space.v) : null, '', s.space ? s.space.n + '日ぶん' : '記録なし') +
+      cell('体重',    s.weight ? fmt(s.weight.v) : null, 'kg',
+           s.weightChange != null
+             ? (s.weightChange >= 0 ? '＋' : '−') + Math.abs(Math.round(s.weightChange * 10) / 10) + 'kg'
+             : (s.weight ? s.weight.n + '日ぶん' : '記録なし')) +
       cell('握り',    s.grip ? fmt(s.grip.v) : null, '', s.grip ? s.grip.n + '日ぶん' : '記録なし') +
       cell('強さ',    s.intensity ? fmt(s.intensity.v) : null, '', s.intensity ? s.intensity.n + '日ぶん' : '記録なし') +
       cell('書きとめた', s.notices, '', s.questions ? '問い ' + s.questions : '') +
@@ -69,6 +73,7 @@
       { key: 'sleep', label: '睡眠', color: 'var(--k-dream)' },
       { key: 'condition', label: '調子', color: 'var(--k-thanks)' },
       { key: 'space', label: '余白', color: 'var(--k-hunch)' },
+      { key: 'weight', label: '体重', color: 'var(--k-chance)' },
       { key: 'grip', label: '握り', color: 'var(--gold)' },
       { key: 'intensity', label: '強さ', color: 'var(--moon)' }
     ].filter(function (r) {
@@ -154,6 +159,7 @@
       { k: 'condition', label: '調子' },
       { k: 'sleep', label: '睡眠' },
       { k: 'space', label: '余白' },
+      { k: 'weight', label: '体重' },
       { k: 'grip', label: '握り' },
       { k: 'notices', label: '書いた数' }
     ];

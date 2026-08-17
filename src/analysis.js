@@ -25,11 +25,11 @@
      40日ぶんの r=0.4 とはまったく重みが違う。固定のしきい値では、
      記録が少ない時期にいい加減なことを言ってしまう。
 
-     そこで n に応じて厳しさを変える。2.2/√n は 5% 水準の臨界値のおおよその形で、
-     係数を 1.96 より大きめに取っているのは、9通りの組を一度に調べているぶん
-     偶然の当たりが増えるのを見込んでいるため。 */
+     そこで n に応じて厳しさを変える。k/√n は 5% 水準の臨界値のおおよその形で、
+     係数を 1.96 より大きめに取っているのは、複数の組を一度に調べているぶん
+     偶然の当たりが増えるのを見込んでいるため。組を増やしたら、ここも上げる。 */
   function threshold(n) {
-    return Math.max(MIN_R, 2.2 / Math.sqrt(n));
+    return Math.max(MIN_R, 2.3 / Math.sqrt(n));
   }
 
   /* ------------------------------------------------------- 日ごとに束ねる */
@@ -44,7 +44,7 @@
       if (!rows[key]) {
         rows[key] = {
           day: key, at: at,
-          sleep: null, condition: null, space: null,
+          sleep: null, condition: null, space: null, weight: null,
           notices: 0, dreams: 0, questions: 0,
           gripSum: 0, gripN: 0, intSum: 0, intN: 0
         };
@@ -54,7 +54,7 @@
 
     s.days.forEach(function (d) {
       var r = row(d.day, d.at);
-      r.sleep = d.sleep; r.condition = d.condition; r.space = d.space;
+      r.sleep = d.sleep; r.condition = d.condition; r.space = d.space; r.weight = d.weight;
     });
     s.notices.forEach(function (n) {
       var r = row(ui.dayKey(n.createdAt), n.createdAt);
@@ -72,7 +72,7 @@
       });
     });
 
-    return Object.keys(rows).map(function (k) {
+    var list = Object.keys(rows).map(function (k) {
       var r = rows[k];
       r.grip = r.gripN ? r.gripSum / r.gripN : null;
       r.intensity = r.intN ? r.intSum / r.intN : null;
@@ -80,6 +80,32 @@
       r.date = new Date(r.at);
       return r;
     }).sort(function (a, b) { return a.day < b.day ? -1 : 1; });
+
+    detrendWeight(list);
+    return list;
+  }
+
+  /* -------------------------------------------------------------------------
+     体重だけは、生の数字を相関にかけてはいけない。
+
+     体重はゆっくり一方向に動く。45日かけて体重が下がり、たまたま調子が
+     上向いていたら、強い相関が出る。でもそれは2本の傾きが並んでいるだけで、
+     関係ではない。こういう見せかけの相関は、いちばん信じ込みやすい。
+
+     そこで前後3日の移動平均からのずれ（weightDev）を作り、相関にはこちらを使う。
+     ゆっくりした増減を取り除いて、その日ごとの揺れだけを残す。
+     生の体重は、推移の折れ線と平均の表示にだけ使う。
+     ------------------------------------------------------------------------- */
+  function detrendWeight(list) {
+    var idx = list.filter(function (r) { return r.weight != null; });
+    idx.forEach(function (r) {
+      var t = r.date.getTime(), near = [];
+      idx.forEach(function (o) {
+        if (Math.abs(o.date.getTime() - t) <= 3.5 * 86400000) near.push(Number(o.weight));
+      });
+      // まわりに点が少ないと移動平均が意味をなさないので、そのときは出さない
+      r.weightDev = near.length >= 3 ? Number(r.weight) - mean(near) : null;
+    });
   }
 
   /* ------------------------------------------------------------ 統計の道具 */
@@ -147,11 +173,24 @@
       down: '調子が落ちている日ほど、書きとめることが多い' },
     { x: 'sleep', y: 'condition',
       up: 'よく眠れた日は、調子がよい',
-      down: 'よく眠れた日ほど、調子が落ちている' }
+      down: 'よく眠れた日ほど、調子が落ちている' },
+
+    /* 体重は「ふだんより重い／軽い」というずれで見る（生の値では傾き同士が
+       並んだだけの見せかけの相関になるため）。 */
+    { x: 'weightDev', y: 'condition',
+      up: 'ふだんより体重が重い日ほど、調子がよい',
+      down: 'ふだんより体重が軽い日ほど、調子がよい' },
+    { x: 'weightDev', y: 'sleep',
+      up: 'ふだんより体重が重い日は、よく眠れている',
+      down: 'ふだんより体重が軽い日は、よく眠れている' },
+    { x: 'weightDev', y: 'grip',
+      up: 'ふだんより体重が重い日ほど、握りしめが強い',
+      down: 'ふだんより体重が軽い日ほど、握りしめが強い' }
   ];
 
   var LABEL = {
     sleep: '睡眠', condition: '調子', space: '余白',
+    weight: '体重', weightDev: '体重のぶれ',
     grip: '握り', intensity: '強さ', notices: '書きとめた数', dream: '夢の想起'
   };
 
@@ -177,7 +216,7 @@
   /* あと何日ぶん記録すれば、つながりの話ができるようになるか */
   function daysUntilLinks(table) {
     var have = table.filter(function (r) {
-      return r.sleep != null || r.condition != null || r.space != null;
+      return r.sleep != null || r.condition != null || r.space != null || r.weight != null;
     }).length;
     return Math.max(0, MIN_DAYS - have);
   }
@@ -198,7 +237,11 @@
     return {
       days: days,
       sleep: avg('sleep'), condition: avg('condition'), space: avg('space'),
-      grip: avg('grip'), intensity: avg('intensity'),
+      weight: avg('weight'), grip: avg('grip'), intensity: avg('intensity'),
+      weightChange: (function () {
+        var ws = win.filter(function (r) { return r.weight != null; });
+        return ws.length >= 2 ? Number(ws[ws.length - 1].weight) - Number(ws[0].weight) : null;
+      })(),
       notices: win.reduce(function (a, r) { return a + r.notices; }, 0),
       questions: win.reduce(function (a, r) { return a + r.questions; }, 0),
       recorded: win.filter(function (r) { return r.sleep != null || r.condition != null; }).length

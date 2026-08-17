@@ -312,10 +312,18 @@
       sleep: null,        // 昨夜の睡眠（時間）
       condition: null,    // からだと心の調子 1〜5
       space: null,        // 余白・ゆとり 1〜5
+      weight: null,       // 体重（kg）
       note: ''
     }, fields);
     update(function (s) { s.days.unshift(d); });
     return d;
+  }
+
+  /* 直近に記録された体重。入力欄の初期値に使う（毎回打ち直さなくてよいように）。 */
+  function lastWeight() {
+    var sorted = state.days.slice().sort(function (a, b) { return a.day < b.day ? 1 : -1; });
+    for (var i = 0; i < sorted.length; i++) if (sorted[i].weight != null) return sorted[i].weight;
+    return null;
   }
 
   function getDay(dayKey) {
@@ -427,7 +435,7 @@
     addNotice: addNotice, editNotice: editNotice, removeNotice: removeNotice,
 
     saveRitual: saveRitual, getRitual: getRitual,
-    upsertDay: upsertDay, getDay: getDay, removeDay: removeDay,
+    upsertDay: upsertDay, getDay: getDay, removeDay: removeDay, lastWeight: lastWeight,
 
     exportJSON: exportJSON, importJSON: importJSON, reset: reset
   };
