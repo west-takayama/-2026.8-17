@@ -22,6 +22,14 @@
   --teal:      #6fc6c0;   /* 気づき */
   --rose:      #e0787f;   /* 危険 */
 
+  /* 記録の6種。星図で見分けがつくよう、色相を離してある */
+  --k-chance:  #dda2e6;   /* 偶然   藤 */
+  --k-hunch:   #7fd4c8;   /* 直感   青緑 */
+  --k-dream:   #8fb8f0;   /* 夢     夜明けの青 */
+  --k-sign:    #e6c473;   /* 兆し   金 */
+  --k-insight: #a8b0f5;   /* 気づき 菫 */
+  --k-thanks:  #90d69f;   /* 感謝   若草 */
+
   --r:   14px;
   --r-s: 10px;
   --pad: 16px;
@@ -404,10 +412,23 @@ input[type="file"].in { padding: 9px; font-size: 12px; color: var(--muted); }
 .nlist li:last-child { border-bottom: 0; }
 .nlist__t { flex: 1; line-height: 1.65; }
 .nlist__d { font-size: 11px; color: var(--faint); flex: none; }
-.nlist__k { font-size: 10px; padding: 1px 8px; border-radius: 999px; flex: none; }
-.nlist__k--sign    { background: rgba(230,196,115,.16); color: var(--gold); }
-.nlist__k--insight { background: rgba(124,134,232,.18); color: #b3baff; }
-.nlist__k--thanks  { background: rgba(111,198,192,.18); color: var(--teal); }
+.nlist__k { font-size: 10px; padding: 1px 8px; border-radius: 999px; flex: none; white-space: nowrap; }
+.nlist__k--chance  { background: color-mix(in srgb, var(--k-chance) 18%, transparent);  color: var(--k-chance); }
+.nlist__k--hunch   { background: color-mix(in srgb, var(--k-hunch) 18%, transparent);   color: var(--k-hunch); }
+.nlist__k--dream   { background: color-mix(in srgb, var(--k-dream) 18%, transparent);   color: var(--k-dream); }
+.nlist__k--sign    { background: color-mix(in srgb, var(--k-sign) 18%, transparent);    color: var(--k-sign); }
+.nlist__k--insight { background: color-mix(in srgb, var(--k-insight) 18%, transparent); color: var(--k-insight); }
+.nlist__k--thanks  { background: color-mix(in srgb, var(--k-thanks) 18%, transparent);  color: var(--k-thanks); }
+
+/* 種類ごとの色を持つチップ（書きこみ欄） */
+.chip--k.is-on { color: #0b1020; font-weight: 700; }
+.chip--chance.is-on  { background: var(--k-chance);  border-color: var(--k-chance); }
+.chip--hunch.is-on   { background: var(--k-hunch);   border-color: var(--k-hunch); }
+.chip--dream.is-on   { background: var(--k-dream);   border-color: var(--k-dream); }
+.chip--sign.is-on    { background: var(--k-sign);    border-color: var(--k-sign); }
+.chip--insight.is-on { background: var(--k-insight); border-color: var(--k-insight); }
+.chip--thanks.is-on  { background: var(--k-thanks);  border-color: var(--k-thanks); }
+.chip--k.is-on small { color: rgba(11,16,32,.7); }
 
 /* -------------------------------------------------------------- 月の暦 */
 
@@ -448,11 +469,96 @@ input[type="file"].in { padding: 9px; font-size: 12px; color: var(--muted); }
 .bar__b { color: var(--indigo); font-style: normal; margin-left: 4px; }
 .bar__d { color: var(--gold); font-style: normal; margin-left: 4px; }
 
+/* -------------------------------------------------------------- 符合 */
+
+/* 響き合いのカード */
+.card--echo {
+  border-color: rgba(221,162,230,.34);
+  background: linear-gradient(150deg, rgba(221,162,230,.12), var(--surface) 62%);
+}
+.card--echo .card__title { color: var(--k-chance); }
+.echo__src {
+  display: flex; gap: 8px; align-items: baseline;
+  font-size: 14px; line-height: 1.7; padding-bottom: 10px;
+}
+.echo__i { border-top: 1px solid var(--line); padding: 10px 0 2px; }
+.echo__arrow { font-size: 11px; color: var(--faint); }
+.echo__t { display: flex; gap: 7px; align-items: baseline; font-size: 14px; line-height: 1.7; margin-top: 2px; }
+.echo__why { list-style: none; margin: 6px 0 0; padding: 0; }
+.echo__why li {
+  font-size: 11px; color: var(--muted); line-height: 1.7;
+  padding-left: 12px; position: relative;
+}
+.echo__why li::before {
+  content: ''; position: absolute; left: 2px; top: .75em;
+  width: 4px; height: 4px; border-radius: 50%; background: var(--k-chance);
+}
+
+/* 星図 */
+.sky { display: block; width: 100%; height: auto; margin: 6px 0 4px; touch-action: manipulation; }
+.sky__ring  { fill: none; stroke: rgba(255,255,255,.05); stroke-width: .6; }
+.sky__spoke { stroke: rgba(255,255,255,.055); stroke-width: .6; }
+.sky__lb    { fill: var(--faint); font-size: 7px; font-family: var(--font); letter-spacing: .08em; }
+.sky__link  { stroke: var(--moon); stroke-width: .55; }
+.sky__link.is-on { stroke: var(--k-chance); stroke-width: 1.1; }
+.sky__hit   { fill: transparent; cursor: pointer; }
+.sky__halo  { fill: none; stroke: var(--k-chance); stroke-width: 1; opacity: .8; }
+.sky__dot   { fill: var(--moon); transition: r .15s; }
+.sky__star--chance  .sky__dot { fill: var(--k-chance); }
+.sky__star--hunch   .sky__dot { fill: var(--k-hunch); }
+.sky__star--dream   .sky__dot { fill: var(--k-dream); }
+.sky__star--sign    .sky__dot { fill: var(--k-sign); }
+.sky__star--insight .sky__dot { fill: var(--k-insight); }
+.sky__star--thanks  .sky__dot { fill: var(--k-thanks); }
+.sky__star.is-on .sky__dot { r: 4.2; }
+.sky__star:hover .sky__dot { r: 4.6; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 10px; color: var(--faint); }
+.lg { display: inline-flex; align-items: center; gap: 4px; }
+.lg::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+.lg--chance::before  { background: var(--k-chance); }
+.lg--hunch::before   { background: var(--k-hunch); }
+.lg--dream::before   { background: var(--k-dream); }
+.lg--sign::before    { background: var(--k-sign); }
+.lg--insight::before { background: var(--k-insight); }
+.lg--thanks::before  { background: var(--k-thanks); }
+
+/* くり返し現れている語 */
+.terms { display: flex; flex-wrap: wrap; gap: 8px; }
+.term {
+  display: inline-flex; flex-direction: column; align-items: flex-start;
+  padding: 7px 12px; border-radius: var(--r-s); color: inherit;
+  background: rgba(255,255,255,.04); border: 1px solid var(--line);
+  opacity: calc(.55 + var(--w) * .45);
+}
+.term:hover { text-decoration: none; border-color: var(--line-2); background: rgba(255,255,255,.09); }
+.term__w { display: flex; align-items: baseline; gap: 5px; }
+.term b { font-size: calc(12px + var(--w) * 6px); font-weight: 600; line-height: 1.3; }
+.term i { font-style: normal; font-size: 10px; color: var(--gold); }
+.term small { font-size: 9px; color: var(--faint); }
+
+/* つながった点 */
+.plist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.plist__i { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.plist__i:last-child { border-bottom: 0; }
+.plist__n {
+  display: flex; gap: 7px; align-items: baseline;
+  font-size: 13px; line-height: 1.65; color: inherit;
+}
+.plist__n:hover { text-decoration: none; color: var(--moon); }
+.plist__n em { font-style: normal; font-size: 10px; color: var(--faint); flex: none; margin-left: auto; }
+.plist__why {
+  font-size: 11px; color: var(--k-chance); margin: 3px 0 3px 20px;
+  padding-left: 12px; border-left: 1px solid rgba(221,162,230,.4);
+}
+
+.in--sm { width: auto; max-width: 40%; padding: 7px 10px; font-size: 12px; }
+
 /* -------------------------------------------------------------- 下のバー */
 
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  display: grid; grid-template-columns: repeat(5, 1fr);
+  display: grid; grid-template-columns: repeat(6, 1fr);
   background: rgba(8, 12, 24, .92);
   backdrop-filter: blur(14px);
   border-top: 1px solid var(--line);
@@ -460,10 +566,14 @@ input[type="file"].in { padding: 9px; font-size: 12px; color: var(--muted); }
 }
 .tabbar a {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 9px 0 8px; font-size: 10px; color: var(--faint); letter-spacing: .06em;
+  padding: 9px 0 8px; font-size: 10px; color: var(--faint); letter-spacing: 0;
+  white-space: nowrap;
 }
+@media (max-width: 360px) { .tabbar a { font-size: 9px; } }
 .tabbar a:hover { text-decoration: none; color: var(--muted); }
 .tabbar__i { font-size: 15px; line-height: 1.2; }
+.tabbar__i--svg { display: flex; align-items: center; height: 18px; }
+.tabbar__i--svg svg { fill: currentColor; }
 .tabbar a.is-on { color: var(--moon); }
 
 /* ---------------------------------------------------------------- 通知 */

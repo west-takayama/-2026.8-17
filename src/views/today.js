@@ -8,6 +8,9 @@
   'use strict';
   var ui = W.ui, esc = ui.esc;
 
+  /* 選んだ種類は覚えておく（描き直しで既定値に戻らないように） */
+  var lastKind = 'sign';
+
   function streak() {
     // 気づきを書いた日が何日続いているか（今日または昨日を起点に数える）
     var days = {};
@@ -75,9 +78,9 @@
   }
 
   function quickNotice() {
-    var kinds = Object.keys(ui.KINDS).map(function (k, i) {
-      return '<button type="button" class="chip' + (i === 0 ? ' is-on' : '') + '" data-kind="' + k + '">' +
-             esc(ui.KINDS[k].label) + '</button>';
+    var kinds = Object.keys(ui.KINDS).map(function (k) {
+      return '<button type="button" class="chip chip--k chip--' + k + (k === lastKind ? ' is-on' : '') +
+             '" data-kind="' + k + '">' + esc(ui.KINDS[k].label) + '</button>';
     }).join('');
     return '' +
       '<section class="card">' +
@@ -88,7 +91,7 @@
           '<select id="noticeWish" class="sel">' + ui.wishOptions(null) + '</select>' +
           '<button class="btn btn--primary" data-act="notice-save">書きとめる</button>' +
         '</div>' +
-      '</section>';
+      '</section>' + W.echoView.justWritten();
   }
 
   function wishRow(w) {
@@ -138,11 +141,11 @@
   }
 
   function mount(root) {
-    var kind = 'sign';
+    var kind = lastKind;
     var chips = root.querySelector('#kindChips');
     if (chips) chips.addEventListener('click', function (e) {
       var c = e.target.closest('.chip'); if (!c) return;
-      kind = c.dataset.kind;
+      kind = lastKind = c.dataset.kind;
       chips.querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('is-on', x === c); });
     });
 
@@ -156,8 +159,9 @@
       if (act === 'notice-save') {
         var text = ta.value.trim();
         if (!text) { ta.focus(); return; }
-        W.store.addNotice(text, kind, root.querySelector('#noticeWish').value || null);
+        var n = W.store.addNotice(text, kind, root.querySelector('#noticeWish').value || null);
         ta.value = ''; ta.dispatchEvent(new Event('input'));
+        ui.setEcho(n.id);              // 直後に「前の記録と響いています」を出す
         ui.toast('書きとめました');
       }
 

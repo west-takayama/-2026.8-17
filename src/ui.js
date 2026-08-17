@@ -51,7 +51,13 @@
 
   /* ---- 部品 ---- */
 
+  /* 記録の種類。前の3つに、符合を追うための3つを足してある。
+     順番は composer に並ぶ順。偶然・直感・夢を先に置いているのは、
+     いちばん逃げ足が速い記憶だから（あとで書こうとすると、もう思い出せない）。 */
   var KINDS = {
+    chance:  { label: '偶然',  hint: '意味を感じた偶然の一致' },
+    hunch:   { label: '直感',  hint: 'ふと浮かんだこと、予感' },
+    dream:   { label: '夢',    hint: '見た夢。断片だけでもいい' },
     sign:    { label: '兆し',  hint: '願いに関係ありそうな、小さな出来事' },
     insight: { label: '気づき', hint: 'ふと分かったこと、考えが変わったこと' },
     thanks:  { label: '感謝',  hint: 'すでに受け取っていたもの' }
@@ -141,7 +147,20 @@
     return out;
   }
 
+  /* 書いた直後だけ生きている短い記憶。
+     記録を保存したあと、その場で「これは3週間前の◯◯と似ています」を出すために使う。
+     保存しない（＝画面を離れて時間が経てば消える）のが大事なところ。 */
+  var flash = { id: null, at: 0 };
+  function setEcho(id) { flash.id = id; flash.at = Date.now(); }
+  function getEcho(withinMs) {
+    if (!flash.id) return null;
+    if (Date.now() - flash.at > (withinMs || 120000)) return null;
+    return flash.id;
+  }
+  function clearEcho() { flash.id = null; flash.at = 0; }
+
   W.ui = {
+    setEcho: setEcho, getEcho: getEcho, clearEcho: clearEcho,
     esc: esc, nl2br: nl2br,
     dayKey: dayKey, fmtDate: fmtDate, fmtFull: fmtFull, fmtTime: fmtTime,
     daysBetween: daysBetween, ago: ago,

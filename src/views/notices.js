@@ -8,6 +8,9 @@
   'use strict';
   var ui = W.ui, esc = ui.esc;
 
+  /* 選んだ種類は覚えておく（描き直しで既定値に戻らないように） */
+  var lastKind = 'sign';
+
   function filters(params) {
     var kinds = ['all'].concat(Object.keys(ui.KINDS));
     var chips = kinds.map(function (k) {
@@ -19,7 +22,10 @@
     chips += '<a class="chip' + (params.star ? ' is-on' : '') + '" href="' +
       esc(hrefWith(params, { star: params.star ? null : 1 })) + '">★ しるし</a>';
 
-    var wishSel = '<select id="filterWish" class="sel sel--sm">' +
+    var search = '<input id="filterQ" class="in in--sm" type="search" placeholder="言葉でさがす" value="' +
+      esc(params.q || '') + '">';
+
+    var wishSel = search + '<select id="filterWish" class="sel sel--sm">' +
       '<option value="">すべての願い</option>' +
       W.store.state.wishes.map(function (w) {
         return '<option value="' + esc(w.id) + '"' + (params.wish === w.id ? ' selected' : '') + '>' + esc(w.title) + '</option>';
@@ -36,13 +42,15 @@
     if (p.kind && p.kind !== 'all') qs.push('kind=' + encodeURIComponent(p.kind));
     if (p.wish) qs.push('wish=' + encodeURIComponent(p.wish));
     if (p.star) qs.push('star=1');
+    if (p.q) qs.push('q=' + encodeURIComponent(p.q));
     return '#/notices' + (qs.length ? '?' + qs.join('&') : '');
   }
 
   function composer(params) {
-    var kinds = Object.keys(ui.KINDS).map(function (k, i) {
-      return '<button type="button" class="chip' + (i === 0 ? ' is-on' : '') + '" data-kind="' + k + '">' +
-             esc(ui.KINDS[k].label) + '<small>' + esc(ui.KINDS[k].hint) + '</small></button>';
+    var kinds = Object.keys(ui.KINDS).map(function (k) {
+      return '<button type="button" class="chip chip--k chip--' + k + (k === lastKind ? ' is-on' : '') +
+             '" data-kind="' + k + '"><span>' + esc(ui.KINDS[k].label) + '</span>' +
+             '<small>' + esc(ui.KINDS[k].hint) + '</small></button>';
     }).join('');
     return '' +
       '<section class="card card--form">' +
@@ -52,7 +60,7 @@
           '<select id="nWish" class="sel">' + ui.wishOptions(params.wish && params.wish !== '__none' ? params.wish : null) + '</select>' +
           '<button class="btn btn--primary" data-act="n-save">書きとめる</button>' +
         '</div>' +
-      '</section>';
+      '</section>' + W.echoView.justWritten();
   }
 
   function item(n) {
@@ -77,6 +85,10 @@
     if (params.wish === '__none') list = list.filter(function (n) { return !n.wishId; });
     else if (params.wish) list = list.filter(function (n) { return n.wishId === params.wish; });
     if (params.star) list = list.filter(function (n) { return n.starred; });
+    if (params.q) {
+      var q = W.resonance.normalize(params.q);
+      list = list.filter(function (n) { return W.resonance.normalize(n.text).indexOf(q) >= 0; });
+    }
 
     var groups = [], byDay = {};
     list.forEach(function (n) {
@@ -101,11 +113,11 @@
   }
 
   function mount(root, params) {
-    var kind = 'sign';
+    var kind = lastKind;
     var chips = root.querySelector('#kindChips');
     if (chips) chips.addEventListener('click', function (e) {
       var c = e.target.closest('.chip'); if (!c) return;
-      kind = c.dataset.kind;
+      kind = lastKind = c.dataset.kind;
       chips.querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('is-on', x === c); });
     });
     var ta = root.querySelector('#nText');
@@ -116,12 +128,24 @@
       location.hash = hrefWith(params, { wish: fw.value || null });
     });
 
+    var fq = root.querySelector('#filterQ');
+    if (fq) {
+      var timer;
+      fq.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          location.hash = hrefWith(params, { q: fq.value.trim() || null });
+        }, 450);
+      });
+    }
+
     root.addEventListener('click', function (e) {
       var b = e.target.closest('[data-act]'); if (!b) return;
       if (b.dataset.act === 'n-save') {
         var t = ta.value.trim(); if (!t) { ta.focus(); return; }
-        W.store.addNotice(t, kind, root.querySelector('#nWish').value || null);
+        var n = W.store.addNotice(t, kind, root.querySelector('#nWish').value || null);
         ta.value = ''; ta.dispatchEvent(new Event('input'));
+        ui.setEcho(n.id);
         ui.toast('書きとめました');
       }
       if (b.dataset.act === 'star') {
