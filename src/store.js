@@ -24,7 +24,8 @@
       settings: { name: '', lastSeenDay: null },
       wishes:   [],
       questions:[],
-      notices:  []
+      notices:  [],
+      rituals:  []      // 新月と満月に行った儀式の記録
     };
   }
 
@@ -39,6 +40,7 @@
     data.wishes    = Array.isArray(data.wishes)    ? data.wishes    : [];
     data.questions = Array.isArray(data.questions) ? data.questions : [];
     data.notices   = Array.isArray(data.notices)   ? data.notices   : [];
+    data.rituals   = Array.isArray(data.rituals)   ? data.rituals   : [];
 
     data.wishes.forEach(function (w) {
       w.id       = w.id || uid();
@@ -287,6 +289,54 @@
     update(function (s) { s.notices = s.notices.filter(function (n) { return n.id !== id; }); });
   }
 
+  /* ---------------- 儀式 ---------------- */
+
+  /* 新月と満月に一度ずつ。その周期のあいだに何を受け取り、何を手放したかを残す。
+     cycleStart（その周期の始まりの新月）を鍵にして、
+     「この周期はもう済んだか」を判断できるようにしてある。 */
+  function saveRitual(kind, cycleStart, fields) {
+    var now = new Date();
+    var key = ui_dayKeyless(cycleStart);
+    var found = null;
+    state.rituals.forEach(function (r) {
+      if (r.kind === kind && ui_dayKeyless(r.cycleStart) === key) found = r;
+    });
+
+    if (found) {
+      update(function () { Object.assign(found, fields, { at: now.toISOString() }); });
+      return found;
+    }
+    var r = Object.assign({
+      id: uid(),
+      kind: kind,                       // 'new' | 'full'
+      at: now.toISOString(),
+      moon: W.moon.stamp(now),
+      cycleStart: new Date(cycleStart).toISOString(),
+      gratitude: [],                    // 満月：感謝
+      letGo: '',                        // 満月：手放したもの
+      intention: '',                    // 新月：この一巡りの意図
+      focusQuestionId: null,            // 新月：持ち歩く問い
+      note: ''
+    }, fields);
+    update(function (s) { s.rituals.unshift(r); });
+    return r;
+  }
+
+  function getRitual(kind, cycleStart) {
+    var key = ui_dayKeyless(cycleStart);
+    for (var i = 0; i < state.rituals.length; i++) {
+      var r = state.rituals[i];
+      if (r.kind === kind && ui_dayKeyless(r.cycleStart) === key) return r;
+    }
+    return null;
+  }
+
+  /* ui.js に依存したくないので、日付キーだけここで作る */
+  function ui_dayKeyless(d) {
+    var x = (d instanceof Date) ? d : new Date(d);
+    return x.getFullYear() + '-' + (x.getMonth() + 1) + '-' + x.getDate();
+  }
+
   /* ---------------- 書き出し・読み込み ---------------- */
 
   function exportJSON() { return JSON.stringify(state, null, 2); }
@@ -299,10 +349,11 @@
         s.wishes    = incoming.wishes;
         s.questions = incoming.questions;
         s.notices   = incoming.notices;
+        s.rituals   = incoming.rituals;
         return;
       }
       // 追加読み込み：同じ id のものは重複させない
-      ['wishes', 'questions', 'notices'].forEach(function (k) {
+      ['wishes', 'questions', 'notices', 'rituals'].forEach(function (k) {
         var seen = {};
         s[k].forEach(function (o) { seen[o.id] = true; });
         incoming[k].forEach(function (o) { if (!seen[o.id]) s[k].push(o); });
@@ -313,7 +364,8 @@
   function reset() {
     update(function (s) {
       var fresh = empty();
-      s.settings = fresh.settings; s.wishes = []; s.questions = []; s.notices = [];
+      s.settings = fresh.settings;
+      s.wishes = []; s.questions = []; s.notices = []; s.rituals = [];
     });
   }
 
@@ -334,6 +386,8 @@
     removeQuestion: removeQuestion, scoreOf: scoreOf,
 
     addNotice: addNotice, editNotice: editNotice, removeNotice: removeNotice,
+
+    saveRitual: saveRitual, getRitual: getRitual,
 
     exportJSON: exportJSON, importJSON: importJSON, reset: reset
   };

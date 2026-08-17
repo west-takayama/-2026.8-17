@@ -5,7 +5,7 @@
    こうしておくと、更新が自動で反映されつつ、電波がなくても起動する。
    記録そのものは localStorage にあるので、ここが消えてもデータは失われない。
    =========================================================================== */
-var CACHE = 'tsukuyomi-shell-v2';
+var CACHE = 'tsukuyomi-shell-v3';
 var SHELL = [
   './',
   './index.html',
@@ -26,6 +26,7 @@ var SHELL = [
   './src/views/questions.js',
   './src/views/notices.js',
   './src/views/moon-view.js',
+  './src/views/ritual.js',
   './src/views/settings.js',
   './src/app.js'
 ];

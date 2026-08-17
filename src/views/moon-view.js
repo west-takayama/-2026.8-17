@@ -60,13 +60,34 @@
     var nFull = W.moon.nextFull(now);
     return '' +
       '<div class="next">' +
-        '<div class="next__i">' + W.moon.svg(nNew, 28) +
+        '<a class="next__i" href="#/ritual?kind=new">' + W.moon.svg(nNew, 28) +
           '<div><strong>次の新月</strong><span>' + esc(ui.fmtFull(nNew)) + '</span>' +
-          '<small>願いを言葉にする日</small></div></div>' +
-        '<div class="next__i">' + W.moon.svg(nFull, 28) +
+          '<small>種をまく日 · 儀式をひらく</small></div></a>' +
+        '<a class="next__i" href="#/ritual?kind=full">' + W.moon.svg(nFull, 28) +
           '<div><strong>次の満月</strong><span>' + esc(ui.fmtFull(nFull)) + '</span>' +
-          '<small>感謝し、手をひらく日</small></div></div>' +
+          '<small>感謝し、手をひらく日 · 儀式をひらく</small></div></a>' +
       '</div>';
+  }
+
+  /* これまでの儀式。読み返すと、一巡りごとの変化が見える。 */
+  function pastRituals() {
+    var rs = W.store.state.rituals.slice(0, 8);
+    if (!rs.length) return '';
+    return '' +
+      '<section class="card">' +
+        '<h2 class="card__title">これまでの儀式<span class="count">' + W.store.state.rituals.length + '</span></h2>' +
+        '<ul class="rpast">' + rs.map(function (r) {
+          var g = (r.gratitude || []).filter(Boolean);
+          return '<li>' +
+            '<div class="rpast__h">' + W.moon.svg(new Date(r.at), 14) +
+              '<strong>' + (r.kind === 'full' ? '満月' : '新月') + '</strong>' +
+              '<span>' + esc(ui.fmtFull(r.at)) + '</span></div>' +
+            (g.length ? '<div class="rpast__b">' + g.map(esc).join(' / ') + '</div>' : '') +
+            (r.letGo ? '<div class="rpast__b rpast__b--letgo">手放した … ' + esc(r.letGo) + '</div>' : '') +
+            (r.intention ? '<div class="rpast__b">意図 … ' + esc(r.intention) + '</div>' : '') +
+          '</li>';
+        }).join('') + '</ul>' +
+      '</section>';
   }
 
   function guide() {
@@ -134,6 +155,7 @@
         cycle() +
         upcoming() +
       '</section>' +
+      pastRituals() +
       stats() +
       '<section class="card">' +
         '<h2 class="card__title">八つの月と、すること</h2>' +

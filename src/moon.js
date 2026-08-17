@@ -140,10 +140,15 @@
   function nextNew(date)  { return nextTime(date, 0); }
   function nextFull(date) { return nextTime(date, 0.5); }
 
-  /* 直近の新月（＝いまの周期の始まり） */
+  /* 直近の新月（＝いまの周期の始まり）。
+     朔望月ぶん戻ってから「次の新月」を探すやり方だと、
+     戻し幅が 29.53 日をわずかに超えるため、新月を過ぎた直後の十数時間だけ
+     ひとつ前の新月を返してしまう。まさに新月の日に狂うので、
+     いま周期のどこにいるか（fraction）から戻す量を決める。 */
   function lastNew(date) {
     var d = asDate(date);
-    return nextTime(addDays(d, -SYNODIC * 1.02), 0);
+    var back = fraction(d) * SYNODIC;      // 新月からの経過日数
+    return nextTime(addDays(d, -back - 1), 0);
   }
 
   /* 次に新月／満月が来るまでの日数 */

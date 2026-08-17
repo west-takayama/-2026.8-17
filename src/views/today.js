@@ -45,23 +45,33 @@
       '</section>';
   }
 
-  /* 新月と満月は、このアプリのいちばん大事な二日。開いたら必ず目に入るようにする。 */
+  /* 新月と満月は、このアプリのいちばん大事な二日。開いたら必ず目に入るようにする。
+     声をかけるだけでは何も起きないので、そのまま儀式に入れるようにしてある。 */
   function ritual() {
     var now = new Date();
     var k = W.moon.phase(now).key;
+    if (k !== 'new' && k !== 'full') return '';
+
+    var kind = k === 'full' ? 'full' : 'new';
+    var start = W.ritual.cycleStartFor(kind, now);
+    var done = W.store.getRitual(kind, start);
+
     if (k === 'new') {
       return '<div class="ritual ritual--new">' +
         '<strong>新月の日です。</strong>' +
-        '<p>いちばん暗い夜に、いちばん静かな願いを言葉にします。まだ形にしていない願いはありませんか。</p>' +
-        '<a class="btn btn--primary" href="#/wishes?new=1">願いを書く</a></div>';
+        '<p>' + (done
+          ? '今日の儀式は記録ずみです。書き足したくなったら、いつでも開けます。'
+          : '前の一巡りを閉じて、あたらしい種をまきます。10分だけ時間をとりませんか。') + '</p>' +
+        '<a class="btn btn--primary" href="#/ritual?kind=new">' +
+        (done ? '新月の記録を見る' : '新月の儀式をはじめる') + '</a></div>';
     }
-    if (k === 'full') {
-      return '<div class="ritual ritual--full">' +
-        '<strong>満月の日です。</strong>' +
-        '<p>満ちた月の下で、すでに受け取っているものを数えます。そして、握っている手をひらきます。</p>' +
-        '<a class="btn btn--primary" href="#/moon">満月にすることを見る</a></div>';
-    }
-    return '';
+    return '<div class="ritual ritual--full">' +
+      '<strong>満月の日です。</strong>' +
+      '<p>' + (done
+        ? '今日の儀式は記録ずみです。書き足したくなったら、いつでも開けます。'
+        : 'すでに受け取っているものを数えて、握っている手をひらきます。') + '</p>' +
+      '<a class="btn btn--primary" href="#/ritual?kind=full">' +
+      (done ? '満月の記録を見る' : '満月の儀式をはじめる') + '</a></div>';
   }
 
   function todayQuestion() {
