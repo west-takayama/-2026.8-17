@@ -39,6 +39,8 @@
         '<div class="row row--end"><button class="btn" data-act="save-name">保存</button></div>' +
       '</section>' +
 
+      aiCard() +
+
       '<section class="card">' +
         '<h2 class="card__title">記録の持ち出し</h2>' +
         '<p class="hint">この記録は、いま使っているブラウザの中だけに保存されています。' +
@@ -67,6 +69,46 @@
 
       '<section class="card card--actions">' +
         '<button class="btn btn--danger" data-act="reset">すべて消す</button>' +
+      '</section>';
+  }
+
+  /* AIの設定。ここだけが「外に出る」機能なので、何が送られるかを最初に書く。 */
+  function aiCard() {
+    var on = W.ai.enabled();
+    var key = W.ai.getKey();
+    var masked = key ? key.slice(0, 7) + '…' + key.slice(-4) : '';
+    return '' +
+      '<section class="card card--ai">' +
+        '<h2 class="card__title">AIに手伝ってもらう' +
+          (on ? '<span class="count count--ok">つながっています</span>' : '') + '</h2>' +
+        '<p class="hint">〈願いを深める〉で、AIがこの願いに合わせた問いを立てます。' +
+          '既定では使いません。ここに鍵を入れたときだけ動きます。</p>' +
+
+        '<div class="ainote">' +
+          '<strong>使うと、次のものだけが Anthropic に送られます。</strong>' +
+          '<ul>' +
+            '<li>そのとき深めている願いの文（願い・なぜ・情景）</li>' +
+            '<li>その願いに紐づく問いと、あなたがその場で書いた答え</li>' +
+          '</ul>' +
+          '<strong>送られないもの</strong>' +
+          '<ul>' +
+            '<li>気づき・夢・偶然の記録、睡眠・体重・調子、儀式、ほかの願い</li>' +
+          '</ul>' +
+          '<p>中継するサーバーはありません。端末から Anthropic へ直接つなぎます。' +
+            'AIは問いを立てるだけで、願いを代わりに書くことはしません。</p>' +
+        '</div>' +
+
+        '<label class="lb">APIキー<small>console.anthropic.com で作れます</small></label>' +
+        '<input id="aiKey" class="in" type="password" autocomplete="off" ' +
+          'placeholder="' + (on ? esc(masked) : 'sk-ant-…') + '">' +
+        '<div class="row">' +
+          '<button class="btn btn--primary" data-act="ai-save">保存する</button>' +
+          (on ? '<button class="btn" data-act="ai-test">つながるか試す</button>' +
+                '<button class="btn btn--danger" data-act="ai-clear">鍵を消す</button>' : '') +
+        '</div>' +
+        '<p class="footnote">鍵はこの端末のブラウザに保存され、記録の書き出し（JSON）には含まれません。' +
+          '端末を他人と共有している場合は入れないでください。' +
+          '費用は使った分だけで、1回およそ3〜6円です（' + esc(W.ai.MODEL) + '）。</p>' +
       '</section>';
   }
 
@@ -117,6 +159,28 @@
         W.store.update(function (s) { s.settings.name = root.querySelector('#setName').value.trim(); });
         ui.toast('保存しました');
       }
+      if (act === 'ai-save') {
+        var v = root.querySelector('#aiKey').value.trim();
+        if (!v) { ui.toast('キーを入れてください'); return; }
+        if (v.indexOf('sk-ant-') !== 0) {
+          if (!confirm('sk-ant- で始まらないキーですが、このまま保存しますか？')) return;
+        }
+        W.ai.setKey(v);
+        root.querySelector('#aiKey').value = '';
+        ui.toast('保存しました');
+      }
+      if (act === 'ai-clear') {
+        if (!confirm('APIキーを消します。AIの手伝いは使えなくなります。')) return;
+        W.ai.setKey('');
+        ui.toast('消しました');
+      }
+      if (act === 'ai-test') {
+        b.disabled = true; b.textContent = '試しています…';
+        W.ai.test().then(function () { alert('つながりました。'); })
+          .catch(function (err) { alert('つながりませんでした。\n\n' + W.ai.errorText(err)); })
+          .then(function () { b.disabled = false; b.textContent = 'つながるか試す'; });
+      }
+
       if (act === 'export')    download('tsukuyomi-' + stamp + '.json', W.store.exportJSON());
       if (act === 'export-md') download('tsukuyomi-' + stamp + '.txt', toText(), 'text/plain;charset=utf-8');
 

@@ -52,6 +52,7 @@
       w.quietUntil = w.quietUntil || null;
       w.essence  = w.essence || '';
       w.scene    = w.scene || '';
+      w.history  = Array.isArray(w.history) ? w.history : [];
     });
     data.questions.forEach(function (q) {
       q.id     = q.id || uid();
@@ -148,7 +149,8 @@
       releasedAt: null,  releaseNote: '',
       quietUntil: null,
       pulses: [],
-      tags: []
+      tags: [],
+      history: []          // 言い直しの来歴（問いと同じく、消さずに重ねる）
     };
     update(function (s) { s.wishes.unshift(w); });
     return w;
@@ -161,6 +163,23 @@
 
   function editWish(id, patch) {
     update(function () { Object.assign(getWish(id) || {}, patch); });
+  }
+
+  /* 願いを言い直す。前の形は history に残す。
+     問いに系譜があるのに願いにないのは、片手落ちだった。
+     願いの輪郭が変わっていく過程そのものが、執着から離れていく過程なので。 */
+  function rewordWish(id, title, note) {
+    var now = new Date();
+    update(function () {
+      var w = getWish(id); if (!w) return;
+      var next = (title || '').trim();
+      if (!next || next === w.title) return;
+      w.history.push({
+        title: w.title, at: now.toISOString(),
+        moon: W.moon.stamp(now), note: (note || '').trim()
+      });
+      w.title = next;
+    });
   }
 
   /* 叶ったことにする（月相も一緒に刻む） */
@@ -426,6 +445,7 @@
 
     addWish: addWish, getWish: getWish, editWish: editWish,
     fulfillWish: fulfillWish, releaseWish: releaseWish, reviveWish: reviveWish, removeWish: removeWish,
+    rewordWish: rewordWish,
     addPulse: addPulse, lastPulse: lastPulse,
     quiet: quiet, unquiet: unquiet, isQuiet: isQuiet,
 

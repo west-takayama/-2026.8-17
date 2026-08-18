@@ -48,8 +48,38 @@
           badge +
         '</div>' +
       '</section>' +
+      (w.status === 'living'
+        ? '<a class="deepcta" href="#/deepen/' + esc(w.id) + '">' +
+            '<span class="deepcta__t">この願いを、深める</span>' +
+            '<span class="deepcta__n">4つの問いに答えて、輪郭をはっきりさせる' +
+              (W.ai.enabled() ? '（AIが問いを立てます）' : '') + '</span>' +
+          '</a>'
+        : '') +
+      wordHistory(w) +
       (w.essence ? '<section class="card card--soft"><h3 class="card__sub">なぜ、それを願うのか</h3><p>' + ui.nl2br(w.essence) + '</p></section>' : '') +
       (w.scene ? '<section class="card card--soft"><h3 class="card__sub">叶ったときの情景</h3><p>' + ui.nl2br(w.scene) + '</p></section>' : '');
+  }
+
+  /* 言い直しの来歴。問いの系譜と同じ考えで、前の形を消さずに残す。
+     最初の言葉と今の言葉を見比べると、輪郭が動いた距離が見える。 */
+  function wordHistory(w) {
+    if (!w.history || !w.history.length) return '';
+    var rows = w.history.map(function (h, i) {
+      return '<li class="wh__i"><span class="wh__n">' + (i + 1) + '</span>' +
+        '<div><div class="wh__t">' + esc(h.title) + '</div>' +
+        '<div class="wh__m">' + esc(ui.fmtFull(h.at)) +
+          (h.moon ? '・' + esc(h.moon.name) : '') +
+          (h.note ? '・' + esc(h.note) : '') + '</div></div></li>';
+    }).join('');
+    return '<section class="card card--soft">' +
+      '<h3 class="card__sub">この願いの、言い直しの来歴</h3>' +
+      '<ol class="wh">' + rows +
+        '<li class="wh__i is-now"><span class="wh__n">' + (w.history.length + 1) + '</span>' +
+        '<div><div class="wh__t">' + esc(w.title) + '</div>' +
+        '<div class="wh__m">いま</div></div></li>' +
+      '</ol>' +
+      '<p class="hint">言い直すことは、ぶれることではありません。' +
+        '輪郭が変わった分だけ、問いが効いたということです。</p></section>';
   }
 
   function fulfilledBlock(w) {
@@ -239,8 +269,10 @@
       var act = b.dataset.act;
 
       if (act === 'save-edit') {
+        var newTitle = root.querySelector('#eTitle').value.trim();
+        // 願いの文そのものが変わったときは、前の形を来歴に残してから差し替える
+        if (newTitle && newTitle !== w.title) W.store.rewordWish(w.id, newTitle, '書き直し');
         W.store.editWish(w.id, {
-          title:   root.querySelector('#eTitle').value.trim() || w.title,
           essence: root.querySelector('#eEssence').value,
           scene:   root.querySelector('#eScene').value
         });

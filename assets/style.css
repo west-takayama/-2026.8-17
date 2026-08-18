@@ -474,6 +474,95 @@ input[type="file"].in { padding: 9px; font-size: 12px; color: var(--muted); }
 .bar__b { color: var(--indigo); font-style: normal; margin-left: 4px; }
 .bar__d { color: var(--gold); font-style: normal; margin-left: 4px; }
 
+/* -------------------------------------------------------- 願いを深める */
+
+.deepcta {
+  display: block; padding: 14px 16px; border-radius: var(--r); color: inherit;
+  border: 1px solid rgba(168,176,245,.34);
+  background: linear-gradient(140deg, rgba(168,176,245,.14), rgba(18,26,48,.75));
+}
+.deepcta:hover { text-decoration: none; border-color: rgba(168,176,245,.6); }
+.deepcta__t { display: block; font-size: 14px; color: var(--k-insight); letter-spacing: .06em; }
+.deepcta__n { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.dhead { padding: 2px 2px 0; }
+.dhead__back { font-size: 12px; color: var(--faint); }
+.dhead__t { margin: 4px 0 0; font-size: 20px; letter-spacing: .04em; }
+
+.card--deep { border-color: rgba(168,176,245,.3); }
+.card--deep .card__title { color: var(--k-insight); }
+.deep__now {
+  font-size: 15px; line-height: 1.7; padding: 11px 14px; margin-bottom: 12px;
+  border-left: 2px solid var(--k-insight); background: rgba(168,176,245,.08);
+  border-radius: 0 var(--r-s) var(--r-s) 0;
+}
+.deep__q { display: flex; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+.deep__qn {
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(168,176,245,.18); color: var(--k-insight);
+  font-size: 11px; line-height: 22px; text-align: center;
+}
+.deep__qb { flex: 1; min-width: 0; }
+.deep__qt { font-size: 15px; line-height: 1.7; }
+.deep__qw { font-size: 11px; color: var(--faint); margin: 3px 0 7px; line-height: 1.7; }
+.deep__obs { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+.deep__before {
+  font-size: 13px; line-height: 1.6; color: var(--muted);
+  padding: 10px 12px; border-radius: var(--r-s); background: rgba(0,0,0,.24); margin-bottom: 12px;
+}
+.deep__before small { display: block; font-size: 10px; color: var(--faint); }
+
+.deep__wait { display: flex; gap: 6px; justify-content: center; padding: 18px 0; }
+.deep__wait span {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--k-insight);
+  animation: dw 1.1s infinite ease-in-out;
+}
+.deep__wait span:nth-child(2) { animation-delay: .18s; }
+.deep__wait span:nth-child(3) { animation-delay: .36s; }
+@keyframes dw { 0%,80%,100% { opacity: .25; } 40% { opacity: 1; } }
+
+.cands { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+.cand { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.cand input { margin-top: 12px; accent-color: var(--k-insight); flex: none; }
+.cand__b {
+  flex: 1; padding: 11px 13px; border-radius: var(--r-s);
+  background: rgba(255,255,255,.04); border: 1px solid var(--line);
+}
+.cand input:checked + .cand__b { border-color: var(--k-insight); background: rgba(168,176,245,.12); }
+.cand__t { display: block; font-size: 14px; line-height: 1.7; }
+.cand__n { display: block; font-size: 11px; color: var(--faint); margin-top: 3px; }
+
+.mats { list-style: none; margin: 0 0 6px; padding: 0; }
+.mats li {
+  padding: 9px 0; border-bottom: 1px solid var(--line);
+  font-size: 14px; line-height: 1.7;
+}
+.mats li:last-child { border-bottom: 0; }
+.mats small { display: block; font-size: 11px; color: var(--faint); }
+
+/* 願いの言い直しの来歴 */
+.wh { list-style: none; margin: 0; padding: 0; }
+.wh__i {
+  display: flex; gap: 10px; padding: 8px 0 8px 12px; margin-left: 8px;
+  border-left: 1px solid var(--line); font-size: 13px; line-height: 1.65;
+}
+.wh__n { flex: none; width: 1.4em; color: var(--faint); font-size: 11px; }
+.wh__t { color: var(--muted); }
+.wh__m { font-size: 10px; color: var(--faint); }
+.wh__i.is-now .wh__t { color: var(--moon); }
+
+/* AIの設定 */
+.card--ai { border-color: rgba(168,176,245,.28); }
+.ainote {
+  padding: 12px 14px; border-radius: var(--r-s);
+  background: rgba(0,0,0,.24); border: 1px solid var(--line);
+  font-size: 12px; color: var(--muted); line-height: 1.75;
+}
+.ainote strong { display: block; font-size: 12px; color: var(--text); margin-top: 6px; }
+.ainote strong:first-child { margin-top: 0; }
+.ainote ul { margin: 2px 0 6px; padding-left: 1.2em; }
+.ainote p { margin: 6px 0 0; font-size: 11px; color: var(--faint); }
+
 /* ---------------------------------------------------- コンディション */
 
 .card--cond { border-color: rgba(143,184,240,.28); }
